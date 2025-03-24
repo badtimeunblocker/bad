@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mazer</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">Use WASD to move, Mouse to look around, Find the exit!</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/controls/PointerLockControls.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        let mazeSize = 10, wallSize = 5;
+        let walls = [];
+        let playerVelocity = new THREE.Vector3();
+        let playerSpeed = 0.1;
+        
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            
+            controls = new THREE.PointerLockControls(camera, document.body);
+            document.addEventListener('click', () => controls.lock());
+            
+            scene.add(controls.getObject());
+            
+            generateMaze();
+            
+            animate();
+        }
+        
+        function generateMaze() {
+            let floor = new THREE.Mesh(new THREE.PlaneGeometry(mazeSize * wallSize, mazeSize * wallSize), new THREE.MeshBasicMaterial({ color: 0x808080 }));
+            floor.rotation.x = -Math.PI / 2;
+            scene.add(floor);
+            
+            let wallMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+            
+            for (let x = 0; x < mazeSize; x++) {
+                for (let z = 0; z < mazeSize; z++) {
+                    if (Math.random() > 0.7) {
+                        let wall = new THREE.Mesh(new THREE.BoxGeometry(wallSize, wallSize, wallSize), wallMaterial);
+                        wall.position.set(x * wallSize - (mazeSize * wallSize) / 2, wallSize / 2, z * wallSize - (mazeSize * wallSize) / 2);
+                        scene.add(wall);
+                        walls.push(wall);
+                    }
+                }
+            }
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            handleMovement();
+            renderer.render(scene, camera);
+        }
+        
+        function handleMovement() {
+            let direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+            
+            let moveForward = keys['w'] ? playerSpeed : 0;
+            let moveBackward = keys['s'] ? -playerSpeed : 0;
+            let moveLeft = keys['a'] ? -playerSpeed : 0;
+            let moveRight = keys['d'] ? playerSpeed : 0;
+            
+            playerVelocity.set(moveRight + moveLeft, 0, moveForward + moveBackward);
+            
+            let newPosition = controls.getObject().position.clone().add(playerVelocity);
+            
+            let collision = walls.some(wall => {
+                return newPosition.distanceTo(wall.position) < wallSize / 2;
+            });
+            
+            if (!collision) {
+                controls.getObject().position.add(playerVelocity);
+            }
+        }
+        
+        let keys = {};
+        document.addEventListener('keydown', (event) => keys[event.key.toLowerCase()] = true);
+        document.addEventListener('keyup', (event) => keys[event.key.toLowerCase()] = false);
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        init();
+    </script>
+</body>
+</html>
