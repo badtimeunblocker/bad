@@ -26,7 +26,6 @@
 </head>
 <body>
 
-    <!-- Main Menu -->
     <div id="menu">
         <h1>Mazer</h1>
         <p>Find your way through the maze and escape!</p>
@@ -52,11 +51,11 @@
         const cellSize = 5;
 
         function initGame() {
-            // Scene Setup
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
 
             window.addEventListener("resize", () => {
@@ -65,11 +64,19 @@
                 camera.updateProjectionMatrix();
             });
 
-            // Pointer Lock Controls
             controls = new THREE.PointerLockControls(camera, document.body);
             document.addEventListener("click", () => {
                 if (gameStarted) controls.lock();
             });
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
 
             // Generate Random Maze
             walls = [];
@@ -77,13 +84,14 @@
 
             // Create Walls
             const wallGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
-            const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+            const wallMaterial = new THREE.MeshStandardMaterial({ color: 0x555555 });
 
             for (let y = 0; y < mazeSize; y++) {
                 for (let x = 0; x < mazeSize; x++) {
                     if (maze[y][x] === 1) {
                         const wall = new THREE.Mesh(wallGeometry, wallMaterial);
                         wall.position.set(x * cellSize, cellSize / 2, y * cellSize);
+                        wall.castShadow = true;
                         scene.add(wall);
                         walls.push(wall);
                     }
@@ -93,15 +101,16 @@
             // Floor
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(mazeSize * cellSize, mazeSize * cellSize),
-                new THREE.MeshBasicMaterial({ color: 0xaaaaaa })
+                new THREE.MeshStandardMaterial({ color: 0xaaaaaa })
             );
             floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
             scene.add(floor);
 
             // Exit Marker
             const exitMarker = new THREE.Mesh(
                 new THREE.CylinderGeometry(1, 1, 5, 32),
-                new THREE.MeshBasicMaterial({ color: 0xff0000 })
+                new THREE.MeshStandardMaterial({ color: 0xff0000 })
             );
             exitMarker.position.set((mazeSize - 2) * cellSize, 3, (mazeSize - 2) * cellSize);
             scene.add(exitMarker);
@@ -164,7 +173,7 @@
                 if (Math.abs(camera.position.x - exitMarker.position.x) < 2 &&
                     Math.abs(camera.position.z - exitMarker.position.z) < 2) {
                     alert("You escaped the maze!");
-                    location.reload(); // Sends player back to main menu
+                    location.reload(); 
                 }
             }
 
