@@ -21,6 +21,14 @@
             background: white; color: black; border: none; cursor: pointer;
         }
         #menu button:hover { background: gray; }
+        #mini-map {
+            position: fixed; top: 10px; right: 10px;
+            width: 150px; height: 150px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid black;
+            z-index: 1;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -33,146 +41,161 @@
         <button onclick="alert('Controls:\\n- W A S D: Move\\n- Mouse: Look Around\\n- Space: Jump')">Controls</button>
     </div>
 
+    <canvas id="mini-map"></canvas>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
-
+    
     <script>
         let gameStarted = false;
 
         function startGame() {
             document.getElementById("menu").style.display = "none";
+            document.getElementById("mini-map").style.display = "block";
             gameStarted = true;
             controls.lock();
-            initGame();
         }
 
-        let scene, camera, renderer, controls, walls = [];
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Pointer Lock Controls
+        const controls = new THREE.PointerLockControls(camera, document.body);
+        document.addEventListener("click", () => {
+            if (gameStarted) controls.lock();
+        });
+
+        // Maze Settings
         const mazeSize = 10;
         const cellSize = 5;
+        const walls = [];
 
-        function initGame() {
-            // Scene Setup
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            // Pointer Lock Controls
-            controls = new THREE.PointerLockControls(camera, document.body);
-            document.addEventListener("click", () => {
-                if (gameStarted) controls.lock();
-            });
-
-            // Generate Random Maze
-            walls = [];
-            const maze = generateMaze();
-
-            // Create Walls
-            const wallGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
-            const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
-
-            for (let y = 0; y < mazeSize; y++) {
-                for (let x = 0; x < mazeSize; x++) {
-                    if (maze[y][x] === 1) {
-                        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
-                        wall.position.set(x * cellSize, cellSize / 2, y * cellSize);
-                        scene.add(wall);
-                        walls.push(wall);
-                    }
-                }
-            }
-
-            // Floor
-            const floor = new THREE.Mesh(
-                new THREE.PlaneGeometry(mazeSize * cellSize, mazeSize * cellSize),
-                new THREE.MeshBasicMaterial({ color: 0xaaaaaa })
-            );
-            floor.rotation.x = -Math.PI / 2;
-            scene.add(floor);
-
-            // Exit Marker
-            const exitMarker = new THREE.Mesh(
-                new THREE.CylinderGeometry(1, 1, 5, 32),
-                new THREE.MeshBasicMaterial({ color: 0xff0000 })
-            );
-            exitMarker.position.set((mazeSize - 2) * cellSize, 3, (mazeSize - 2) * cellSize);
-            scene.add(exitMarker);
-
-            // Player Setup
-            camera.position.set(1 * cellSize, cellSize, 1 * cellSize);
-            let velocityY = 0;
-            let isJumping = false;
-
-            // Movement
-            const keys = {};
-            window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
-            window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
-
-            function movePlayer() {
-                if (!gameStarted) return;
-
-                const speed = 0.1;
-                const gravity = 0.008;
-                const jumpStrength = 0.18;
-                const direction = new THREE.Vector3();
-                camera.getWorldDirection(direction);
-
-                let moveX = 0, moveZ = 0;
-                if (keys["w"]) { moveX += direction.x * speed; moveZ += direction.z * speed; }
-                if (keys["s"]) { moveX -= direction.x * speed; moveZ -= direction.z * speed; }
-                if (keys["a"]) { moveX += direction.z * speed; moveZ -= direction.x * speed; }
-                if (keys["d"]) { moveX -= direction.z * speed; moveZ += direction.x * speed; }
-
-                if (keys[" "] && !isJumping) {
-                    velocityY = jumpStrength;
-                    isJumping = true;
-                }
-
-                velocityY -= gravity;
-                camera.position.y += velocityY;
-
-                if (camera.position.y <= cellSize) {
-                    camera.position.y = cellSize;
-                    velocityY = 0;
-                    isJumping = false;
-                }
-
-                const newX = camera.position.x + moveX;
-                const newZ = camera.position.z + moveZ;
-                let canMove = true;
-
-                for (let wall of walls) {
-                    if (Math.abs(newX - wall.position.x) < 2 && Math.abs(newZ - wall.position.z) < 2) {
-                        canMove = false;
-                        break;
-                    }
-                }
-
-                if (canMove) {
-                    camera.position.x = newX;
-                    camera.position.z = newZ;
-                }
-
-                if (Math.abs(camera.position.x - exitMarker.position.x) < 2 &&
-                    Math.abs(camera.position.z - exitMarker.position.z) < 2) {
-                    alert("You escaped the maze!");
-                    location.reload(); // Sends player back to main menu
-                }
-            }
-
-            function animate() {
-                requestAnimationFrame(animate);
-                movePlayer();
-                renderer.render(scene, camera);
-            }
-            animate();
-        }
-
+        // Random Maze Generator
         function generateMaze() {
-            return Array.from({ length: mazeSize }, () => Array(mazeSize).fill(1));
+            const maze = Array.from({ length: mazeSize }, () =>
+                Array(mazeSize).fill(1)
+            );
+
+            function carveMaze(x, y) {
+                maze[y][x] = 0;
+                const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]].sort(() => Math.random() - 0.5);
+                for (let [dx, dy] of directions) {
+                    const nx = x + dx * 2, ny = y + dy * 2;
+                    if (nx > 0 && ny > 0 && nx < mazeSize - 1 && ny < mazeSize - 1 && maze[ny][nx] === 1) {
+                        maze[y + dy][x + dx] = 0;
+                        carveMaze(nx, ny);
+                    }
+                }
+            }
+            carveMaze(1, 1);
+            maze[mazeSize - 2][mazeSize - 2] = 2; // Exit
+            return maze;
+        }
+        const maze = generateMaze();
+
+        // Create Walls
+        const wallGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
+        const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+
+        for (let y = 0; y < mazeSize; y++) {
+            for (let x = 0; x < mazeSize; x++) {
+                if (maze[y][x] === 1) {
+                    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                    wall.position.set(x * cellSize, cellSize / 2, y * cellSize);
+                    scene.add(wall);
+                    walls.push(wall);
+                }
+            }
         }
 
+        // Floor
+        const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(mazeSize * cellSize, mazeSize * cellSize),
+            new THREE.MeshBasicMaterial({ color: 0xaaaaaa })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        // Exit Marker
+        const exitMarker = new THREE.Mesh(
+            new THREE.CylinderGeometry(1, 1, 5, 32),
+            new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        );
+        exitMarker.position.set((mazeSize - 2) * cellSize, 3, (mazeSize - 2) * cellSize);
+        scene.add(exitMarker);
+
+        // Player Setup
+        camera.position.set(1 * cellSize, cellSize, 1 * cellSize);
+        let velocityY = 0;
+        let isJumping = false;
+
+        // Movement
+        const keys = {};
+        window.addEventListener("keydown", (e) => (keys[e.key.toLowerCase()] = true));
+        window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
+
+        function movePlayer() {
+            if (!gameStarted) return;
+
+            const speed = 0.1;
+            const gravity = 0.008;
+            const jumpStrength = 0.18;
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction);
+
+            let moveX = 0, moveZ = 0;
+            if (keys["w"]) { moveX += direction.x * speed; moveZ += direction.z * speed; }
+            if (keys["s"]) { moveX -= direction.x * speed; moveZ -= direction.z * speed; }
+            if (keys["a"]) { moveX += direction.z * speed; moveZ -= direction.x * speed; }
+            if (keys["d"]) { moveX -= direction.z * speed; moveZ += direction.x * speed; }
+
+            if (keys[" "] && !isJumping) {
+                velocityY = jumpStrength;
+                isJumping = true;
+            }
+
+            velocityY -= gravity;
+            camera.position.y += velocityY;
+
+            if (camera.position.y <= cellSize) {
+                camera.position.y = cellSize;
+                velocityY = 0;
+                isJumping = false;
+            }
+
+            const newX = camera.position.x + moveX;
+            const newZ = camera.position.z + moveZ;
+            let canMove = true;
+
+            for (let wall of walls) {
+                if (Math.abs(newX - wall.position.x) < 2 && Math.abs(newZ - wall.position.z) < 2) {
+                    canMove = false;
+                    break;
+                }
+            }
+
+            if (canMove) {
+                camera.position.x = newX;
+                camera.position.z = newZ;
+            }
+
+            if (Math.abs(camera.position.x - exitMarker.position.x) < 2 &&
+                Math.abs(camera.position.z - exitMarker.position.z) < 2) {
+                alert("You escaped the maze!");
+                location.reload();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
+        }
+        animate();
     </script>
 
 </body>
