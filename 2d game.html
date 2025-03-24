@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { background: #ddd; display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const player = {
+            x: 100,
+            y: canvas.height - 150,
+            width: 50,
+            height: 50,
+            color: "blue",
+            speed: 5,
+            dy: 0,
+            gravity: 0.5,
+            jumpPower: -10,
+            onGround: false
+        };
+        
+        const keys = {};
+        
+        window.addEventListener("keydown", (e) => keys[e.key] = true);
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+        
+        function update() {
+            let speed = player.speed;
+            if (keys["Shift"]) speed *= 1.8;
+            if (keys["a"]) player.x -= speed;
+            if (keys["d"]) player.x += speed;
+            
+            if (keys[" "] && player.onGround) {
+                player.dy = player.jumpPower;
+                player.onGround = false;
+            }
+            
+            player.dy += player.gravity;
+            player.y += player.dy;
+            
+            if (player.y + player.height >= canvas.height - 50) {
+                player.y = canvas.height - 50 - player.height;
+                player.dy = 0;
+                player.onGround = true;
+            }
+        }
+        
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "blue";
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            
+            ctx.fillStyle = "green";
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        gameLoop();
+    </script>
+</body>
+</html>
