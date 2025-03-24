@@ -13,6 +13,7 @@
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             text-align: center;
+            z-index: 10;
         }
         #menu h1 { font-size: 3em; margin-bottom: 20px; }
         #menu button {
@@ -25,7 +26,8 @@
             width: 150px; height: 150px;
             background: rgba(255, 255, 255, 0.7);
             border: 2px solid black;
-            z-index: 100;
+            z-index: 1;
+            display: none;
         }
     </style>
 </head>
@@ -39,7 +41,7 @@
         <button onclick="alert('Controls:\\n- W A S D: Move\\n- Mouse: Look Around\\n- Space: Jump')">Controls</button>
     </div>
 
-    <canvas id="mini-map" style="display: none;"></canvas>
+    <canvas id="mini-map"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
