@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CER Terminal</title>
+    <title>CER AI Chatbot</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         #chat-container { width: 300px; margin: 20px auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; }
@@ -22,9 +22,11 @@
     
     <script>
         let knowledge = {};
+        let learningMode = false;
+        let lastQuestion = "";
         
         function sendMessage() {
-            let userInput = document.getElementById("user-input").value;
+            let userInput = document.getElementById("user-input").value.trim();
             if (!userInput) return;
             let chatBox = document.getElementById("chat-box");
             chatBox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
@@ -40,6 +42,12 @@
         function getCERResponse(input) {
             input = input.toLowerCase();
             
+            if (learningMode) {
+                knowledge[lastQuestion] = input;
+                learningMode = false;
+                return `Got it! Now I know that '${lastQuestion}' means '${input}'.`;
+            }
+            
             if (/^\d+\s*[+\-*/]\s*\d+$/.test(input)) {
                 try {
                     return eval(input);
@@ -52,8 +60,9 @@
                 return knowledge[input];
             }
             
-            knowledge[input] = "I don't know. Can you teach me?";
-            return knowledge[input];
+            lastQuestion = input;
+            learningMode = true;
+            return "I don't know. Can you teach me?";
         }
     </script>
 </body>
