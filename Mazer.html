@@ -40,24 +40,28 @@
         const cellSize = 5;
         const walls = [];
 
-        // Generate Random Maze
-        const maze = Array.from({ length: mazeSize }, () =>
-            Array(mazeSize).fill(1)
-        );
+        // Random Maze Generator (Ensures unique maze every time)
+        function generateMaze() {
+            const maze = Array.from({ length: mazeSize }, () =>
+                Array(mazeSize).fill(1)
+            );
 
-        function carveMaze(x, y) {
-            maze[y][x] = 0;
-            const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]].sort(() => Math.random() - 0.5);
-            for (let [dx, dy] of directions) {
-                const nx = x + dx * 2, ny = y + dy * 2;
-                if (nx > 0 && ny > 0 && nx < mazeSize - 1 && ny < mazeSize - 1 && maze[ny][nx] === 1) {
-                    maze[y + dy][x + dx] = 0;
-                    carveMaze(nx, ny);
+            function carveMaze(x, y) {
+                maze[y][x] = 0;
+                const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]].sort(() => Math.random() - 0.5);
+                for (let [dx, dy] of directions) {
+                    const nx = x + dx * 2, ny = y + dy * 2;
+                    if (nx > 0 && ny > 0 && nx < mazeSize - 1 && ny < mazeSize - 1 && maze[ny][nx] === 1) {
+                        maze[y + dy][x + dx] = 0;
+                        carveMaze(nx, ny);
+                    }
                 }
             }
+            carveMaze(1, 1);
+            maze[mazeSize - 2][mazeSize - 2] = 2; // Exit
+            return maze;
         }
-        carveMaze(1, 1);
-        maze[mazeSize - 2][mazeSize - 2] = 2; // Exit
+        const maze = generateMaze();
 
         // Create Walls
         const wallGeometry = new THREE.BoxGeometry(cellSize, cellSize, cellSize);
@@ -102,8 +106,8 @@
 
         function movePlayer() {
             const speed = 0.1;
-            const gravity = 0.005;
-            const jumpStrength = 0.2;
+            const gravity = 0.008;
+            const jumpStrength = 0.18;
             const direction = new THREE.Vector3();
             camera.getWorldDirection(direction);
 
