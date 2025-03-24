@@ -7,23 +7,53 @@
     <style>
         body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
         canvas { display: block; }
+        #menu {
+            position: fixed; width: 100vw; height: 100vh;
+            background: black; color: white;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+        }
+        #menu h1 { font-size: 3em; margin-bottom: 20px; }
+        #menu button {
+            font-size: 1.5em; padding: 10px 20px; margin: 10px;
+            background: white; color: black; border: none; cursor: pointer;
+        }
+        #menu button:hover { background: gray; }
         #mini-map {
-            position: fixed; top: 10px; right: 10px; 
-            width: 150px; height: 150px; 
+            position: fixed; top: 10px; right: 10px;
+            width: 150px; height: 150px;
             background: rgba(255, 255, 255, 0.7);
-            border: 2px solid black; 
+            border: 2px solid black;
             z-index: 100;
         }
     </style>
 </head>
 <body>
 
-    <canvas id="mini-map"></canvas>
+    <!-- Main Menu -->
+    <div id="menu">
+        <h1>Mazer</h1>
+        <p>Find your way through the maze and escape!</p>
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="alert('Controls:\\n- W A S D: Move\\n- Mouse: Look Around\\n- Space: Jump')">Controls</button>
+    </div>
+
+    <canvas id="mini-map" style="display: none;"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
     
     <script>
+        let gameStarted = false;
+
+        function startGame() {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("mini-map").style.display = "block";
+            gameStarted = true;
+            controls.lock();
+        }
+
         // Scene setup
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -33,14 +63,16 @@
 
         // Pointer Lock Controls
         const controls = new THREE.PointerLockControls(camera, document.body);
-        document.addEventListener("click", () => controls.lock());
+        document.addEventListener("click", () => {
+            if (gameStarted) controls.lock();
+        });
 
         // Maze Settings
         const mazeSize = 10;
         const cellSize = 5;
         const walls = [];
 
-        // Random Maze Generator (Ensures unique maze every time)
+        // Random Maze Generator
         function generateMaze() {
             const maze = Array.from({ length: mazeSize }, () =>
                 Array(mazeSize).fill(1)
@@ -86,7 +118,7 @@
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Exit Marker (Red Cylinder)
+        // Exit Marker
         const exitMarker = new THREE.Mesh(
             new THREE.CylinderGeometry(1, 1, 5, 32),
             new THREE.MeshBasicMaterial({ color: 0xff0000 })
@@ -105,6 +137,8 @@
         window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
 
         function movePlayer() {
+            if (!gameStarted) return;
+
             const speed = 0.1;
             const gravity = 0.008;
             const jumpStrength = 0.18;
@@ -117,23 +151,20 @@
             if (keys["a"]) { moveX += direction.z * speed; moveZ -= direction.x * speed; }
             if (keys["d"]) { moveX -= direction.z * speed; moveZ += direction.x * speed; }
 
-            // Jumping logic
             if (keys[" "] && !isJumping) {
                 velocityY = jumpStrength;
                 isJumping = true;
             }
 
-            velocityY -= gravity; // Apply gravity
-            camera.position.y += velocityY; // Move vertically
+            velocityY -= gravity;
+            camera.position.y += velocityY;
 
-            // Collision detection with ground
             if (camera.position.y <= cellSize) {
                 camera.position.y = cellSize;
                 velocityY = 0;
                 isJumping = false;
             }
 
-            // Collision detection with walls
             const newX = camera.position.x + moveX;
             const newZ = camera.position.z + moveZ;
             let canMove = true;
@@ -150,7 +181,6 @@
                 camera.position.z = newZ;
             }
 
-            // Check if player reached exit
             if (Math.abs(camera.position.x - exitMarker.position.x) < 2 &&
                 Math.abs(camera.position.z - exitMarker.position.z) < 2) {
                 alert("You escaped the maze!");
@@ -158,34 +188,9 @@
             }
         }
 
-        // Mini-map
-        const miniMap = document.getElementById("mini-map");
-        const miniMapCtx = miniMap.getContext("2d");
-
-        function drawMiniMap() {
-            miniMapCtx.clearRect(0, 0, miniMap.width, miniMap.height);
-            const scale = miniMap.width / mazeSize;
-
-            for (let y = 0; y < mazeSize; y++) {
-                for (let x = 0; x < mazeSize; x++) {
-                    miniMapCtx.fillStyle = maze[y][x] === 1 ? "black" : "white";
-                    miniMapCtx.fillRect(x * scale, y * scale, scale, scale);
-                }
-            }
-
-            // Player position
-            miniMapCtx.fillStyle = "blue";
-            miniMapCtx.fillRect((camera.position.x / cellSize) * scale, (camera.position.z / cellSize) * scale, scale / 2, scale / 2);
-
-            // Exit position
-            miniMapCtx.fillStyle = "red";
-            miniMapCtx.fillRect((mazeSize - 2) * scale, (mazeSize - 2) * scale, scale / 2, scale / 2);
-        }
-
         function animate() {
             requestAnimationFrame(animate);
             movePlayer();
-            drawMiniMap();
             renderer.render(scene, camera);
         }
         animate();
