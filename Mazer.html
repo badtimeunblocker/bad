@@ -92,6 +92,8 @@
 
         // Player Setup
         camera.position.set(1 * cellSize, cellSize, 1 * cellSize);
+        let velocityY = 0;
+        let isJumping = false;
 
         // Movement
         const keys = {};
@@ -100,6 +102,8 @@
 
         function movePlayer() {
             const speed = 0.1;
+            const gravity = 0.005;
+            const jumpStrength = 0.2;
             const direction = new THREE.Vector3();
             camera.getWorldDirection(direction);
 
@@ -109,11 +113,27 @@
             if (keys["a"]) { moveX += direction.z * speed; moveZ -= direction.x * speed; }
             if (keys["d"]) { moveX -= direction.z * speed; moveZ += direction.x * speed; }
 
+            // Jumping logic
+            if (keys[" "] && !isJumping) {
+                velocityY = jumpStrength;
+                isJumping = true;
+            }
+
+            velocityY -= gravity; // Apply gravity
+            camera.position.y += velocityY; // Move vertically
+
+            // Collision detection with ground
+            if (camera.position.y <= cellSize) {
+                camera.position.y = cellSize;
+                velocityY = 0;
+                isJumping = false;
+            }
+
+            // Collision detection with walls
             const newX = camera.position.x + moveX;
             const newZ = camera.position.z + moveZ;
-
-            // Collision detection
             let canMove = true;
+
             for (let wall of walls) {
                 if (Math.abs(newX - wall.position.x) < 2 && Math.abs(newZ - wall.position.z) < 2) {
                     canMove = false;
