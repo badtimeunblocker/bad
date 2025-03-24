@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CER AI Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #chat-container { width: 300px; margin: 20px auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px; }
+        #chat-box { height: 200px; overflow-y: auto; border-bottom: 1px solid #ccc; padding: 5px; }
+        input { width: 80%; padding: 5px; }
+        button { padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Chat with CER</h1>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <input type="text" id="user-input" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    
+    <script>
+        let knowledge = {};
+        
+        function sendMessage() {
+            let userInput = document.getElementById("user-input").value;
+            if (!userInput) return;
+            let chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
+            document.getElementById("user-input").value = "";
+            
+            let response = getCERResponse(userInput);
+            setTimeout(() => {
+                chatBox.innerHTML += `<p><strong>CER:</strong> ${response}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 500);
+        }
+        
+        function getCERResponse(input) {
+            input = input.toLowerCase();
+            
+            if (/^\d+\s*[+\-*/]\s*\d+$/.test(input)) {
+                try {
+                    return eval(input);
+                } catch {
+                    return "I can't compute that.";
+                }
+            }
+            
+            if (knowledge[input]) {
+                return knowledge[input];
+            }
+            
+            knowledge[input] = "I don't know. Can you teach me?";
+            return knowledge[input];
+        }
+    </script>
+</body>
+</html>
