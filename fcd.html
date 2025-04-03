@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Look-to-Walk Horror FPS</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/PointerLockControls.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        let velocity = new THREE.Vector3();
+        const moveSpeed = 0.05;
+
+        // Initialize scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000); // Dark background for horror theme
+        scene.fog = new THREE.FogExp2(0x000000, 0.08); // Add atmospheric fog
+
+        // Camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Pointer Lock Controls for first-person view
+        controls = new THREE.PointerLockControls(camera, document.body);
+        document.body.addEventListener('click', () => controls.lock());
+
+        // Create ground
+        const floorGeometry = new THREE.PlaneGeometry(100, 100);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        // Add eerie lighting
+        const light = new THREE.PointLight(0xff0000, 2, 50);
+        light.position.set(0, 5, 0);
+        scene.add(light);
+
+        // Add random walls/obstacles for a horror vibe
+        for (let i = 0; i < 20; i++) {
+            const wallGeometry = new THREE.BoxGeometry(5, 5, 5);
+            const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(
+                Math.random() * 100 - 50,
+                2.5,
+                Math.random() * 100 - 50
+            );
+            scene.add(wall);
+        }
+
+        // Event handling for locking/unlocking controls
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'KeyW') {
+                velocity.z = -moveSpeed; // Move forward
+            }
+            if (event.code === 'KeyS') {
+                velocity.z = moveSpeed; // Move backward
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.code === 'KeyW' || event.code === 'KeyS') {
+                velocity.z = 0; // Stop moving
+            }
+        });
+
+        function movePlayer() {
+            // Calculate movement direction based on camera's look direction
+            const direction = new THREE.Vector3();
+            camera.getWorldDirection(direction); // Get the forward direction the camera is looking at
+
+            // Apply velocity to camera position
+            camera.position.addScaledVector(direction, velocity.z);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

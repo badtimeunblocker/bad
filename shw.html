@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Maze Game - Jumping Feature</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script>
+        // Basic setup
+        let scene, camera, renderer;
+        let mazeWidth = 10, mazeHeight = 10;
+        let maze = [];
+        let playerPosition = { x: 0, z: 0, y: 1.5 };
+        let velocityY = 0;
+        const gravity = -0.02;
+        let isJumping = false;
+
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xaaaaaa);
+
+        // Set up camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(playerPosition.x, playerPosition.y, playerPosition.z + 5);
+
+        // Set up renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Generate maze
+        function generateMaze() {
+            for (let x = 0; x < mazeWidth; x++) {
+                maze[x] = [];
+                for (let y = 0; y < mazeHeight; y++) {
+                    let cube;
+                    if (Math.random() > 0.7) {
+                        let geometry = new THREE.BoxGeometry(1, 1, 1);
+                        let material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+                        cube = new THREE.Mesh(geometry, material);
+                        cube.position.set(x - mazeWidth / 2, 0.5, y - mazeHeight / 2);
+                        scene.add(cube);
+                    }
+                    maze[x][y] = cube;
+                }
+            }
+        }
+
+        generateMaze();
+
+        // Key handling
+        let keys = {};
+        window.addEventListener('keydown', (event) => {
+            keys[event.code] = true;
+        });
+
+        window.addEventListener('keyup', (event) => {
+            keys[event.code] = false;
+        });
+
+        // Player movement and jumping
+        const moveSpeed = 0.1;
+
+        function movePlayer() {
+            if (keys['ArrowUp'] || keys['KeyW']) {
+                playerPosition.z -= moveSpeed;
+            }
+            if (keys['ArrowDown'] || keys['KeyS']) {
+                playerPosition.z += moveSpeed;
+            }
+            if (keys['ArrowLeft'] || keys['KeyA']) {
+                playerPosition.x -= moveSpeed;
+            }
+            if (keys['ArrowRight'] || keys['KeyD']) {
+                playerPosition.x += moveSpeed;
+            }
+
+            // Jumping mechanic
+            if ((keys['Space'] || keys['KeyJ']) && !isJumping) {
+                velocityY = 0.2; // Initial upward velocity
+                isJumping = true;
+            }
+
+            // Apply gravity and update Y position
+            if (isJumping) {
+                velocityY += gravity;
+                playerPosition.y += velocityY;
+
+                // Stop the jump when player reaches the ground
+                if (playerPosition.y <= 1.5) {
+                    playerPosition.y = 1.5;
+                    velocityY = 0;
+                    isJumping = false;
+                }
+            }
+
+            // Update camera position
+            camera.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
+        }
+
+        // Render loop
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>

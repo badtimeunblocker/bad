@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Maze Game - Infinite Maze with WASD and Jump</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/PointerLockControls.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        let maze = [];
+        let playerPosition = { x: 0, y: 1.5, z: 0 };
+        let velocityY = 0;
+        const gravity = -0.02;
+        let isJumping = false;
+        const mazeWidth = 10;
+        const mazeHeight = 10;
+        const wallHeight = 5;
+        const moveSpeed = 0.1;
+
+        // Initialize scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xaaaaaa);
+
+        // Initialize camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
+
+        // Renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Pointer Lock Controls
+        controls = new THREE.PointerLockControls(camera, document.body);
+        document.body.addEventListener('click', () => {
+            controls.lock();
+        });
+
+        // Generate maze
+        function generateMaze(offsetZ) {
+            for (let x = -mazeWidth / 2; x < mazeWidth / 2; x++) {
+                for (let z = offsetZ - mazeHeight / 2; z < offsetZ + mazeHeight / 2; z++) {
+                    if (Math.random() > 0.7) {
+                        let geometry = new THREE.BoxGeometry(1, wallHeight, 1);
+                        let material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+                        let wall = new THREE.Mesh(geometry, material);
+                        wall.position.set(x, wallHeight / 2, z);
+                        scene.add(wall);
+                        maze.push(wall);
+                    }
+                }
+            }
+        }
+
+        generateMaze(0);
+
+        // Key handling
+        let keys = {};
+        window.addEventListener('keydown', (event) => {
+            keys[event.code] = true;
+        });
+        window.addEventListener('keyup', (event) => {
+            keys[event.code] = false;
+        });
+
+        // Player movement
+        function movePlayer() {
+            if (keys['KeyW'] || keys['ArrowUp']) {
+                controls.moveForward(moveSpeed);
+            }
+            if (keys['KeyS'] || keys['ArrowDown']) {
+                controls.moveForward(-moveSpeed);
+            }
+            if (keys['KeyA'] || keys['ArrowLeft']) {
+                controls.moveRight(-moveSpeed);
+            }
+            if (keys['KeyD'] || keys['ArrowRight']) {
+                controls.moveRight(moveSpeed);
+            }
+
+            // Jumping
+            if ((keys['Space'] || keys['KeyJ']) && !isJumping) {
+                velocityY = 0.2;
+                isJumping = true;
+            }
+
+            if (isJumping) {
+                velocityY += gravity;
+                playerPosition.y += velocityY;
+                if (playerPosition.y <= 1.5) {
+                    playerPosition.y = 1.5;
+                    velocityY = 0;
+                    isJumping = false;
+                }
+            }
+
+            camera.position.set(playerPosition.x, playerPosition.y, playerPosition.z);
+
+            // Infinite maze generation
+            if (camera.position.z % mazeHeight === 0) {
+                generateMaze(camera.position.z + mazeHeight / 2);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
