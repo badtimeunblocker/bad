@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block Builder</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/PointerLockControls.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        const objects = [];
+        const blockSize = 1;
+
+        // Initialize the scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb); // Sky color
+
+        // Add fog for atmosphere
+        scene.fog = new THREE.Fog(0x87ceeb, 20, 100);
+
+        // Create the camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // Create the renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add PointerLockControls for first-person movement
+        controls = new THREE.PointerLockControls(camera, document.body);
+        document.body.addEventListener('click', () => controls.lock());
+
+        // Create ground
+        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x228b22 }); // Green ground
+        const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = 0;
+        scene.add(ground);
+        objects.push(ground);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 20, 10);
+        scene.add(directionalLight);
+
+        // Player movement variables
+        const playerVelocity = new THREE.Vector3();
+        const moveSpeed = 0.1;
+        const gravity = -0.005;
+        const jumpStrength = 0.2;
+        let isJumping = false;
+
+        // Input tracking
+        const keys = {};
+        document.addEventListener('keydown', (event) => { keys[event.code] = true; });
+        document.addEventListener('keyup', (event) => { keys[event.code] = false; });
+
+        // Block placement
+        document.addEventListener('mousedown', (event) => {
+            if (event.button === 0) { // Left mouse button
+                placeBlock();
+            }
+        });
+
+        function placeBlock() {
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+
+            const blockGeometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
+            const blockMaterial = new THREE.MeshLambertMaterial({ color: 0xb5651d }); // Brown block
+            const block = new THREE.Mesh(blockGeometry, blockMaterial);
+
+            const distance = 3; // Distance from the player to place the block
+            block.position.copy(camera.position).add(forward.multiplyScalar(distance));
+            block.position.divideScalar(blockSize).floor().multiplyScalar(blockSize); // Align to grid
+
+            scene.add(block);
+            objects.push(block);
+        }
+
+        function movePlayer() {
+            playerVelocity.set(0, playerVelocity.y, 0);
+
+            // WASD movement
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            forward.y = 0; // Lock movement to X-Z plane
+            forward.normalize();
+
+            const right = new THREE.Vector3();
+            right.crossVectors(forward, camera.up).normalize();
+
+            if (keys['KeyW']) playerVelocity.addScaledVector(forward, moveSpeed);
+            if (keys['KeyS']) playerVelocity.addScaledVector(forward, -moveSpeed);
+            if (keys['KeyA']) playerVelocity.addScaledVector(right, -moveSpeed);
+            if (keys['KeyD']) playerVelocity.addScaledVector(right, moveSpeed);
+
+            // Jumping
+            if (keys['Space'] && !isJumping) {
+                playerVelocity.y = jumpStrength;
+                isJumping = true;
+            }
+
+            // Apply gravity
+            playerVelocity.y += gravity;
+
+            // Prevent falling below ground level
+            if (camera.position.y <= 1.5) {
+                playerVelocity.y = 0;
+                isJumping = false;
+                camera.position.y = 1.5;
+            }
+
+            camera.position.add(playerVelocity);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

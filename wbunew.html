@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Voxel World Game</title>
+  <style>
+    /* CSS Styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+      background-color: #222;
+      color: #fff;
+    }
+
+    #main-menu {
+      text-align: center;
+      margin-top: 20%;
+      display: block;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      background-color: #555;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #888;
+    }
+
+    canvas {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Menu -->
+  <div id="main-menu">
+    <h1>Voxel World</h1>
+    <button onclick="startGame()">Start New World</button>
+    <button onclick="openSettings()">Settings</button>
+    <button onclick="exitGame()">Exit</button>
+  </div>
+
+  <!-- Game Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <script>
+    // JavaScript Code
+
+    // Initialize Variables
+    const gameCanvas = document.getElementById('game-canvas');
+    const ctx = gameCanvas.getContext('2d');
+    let isGameActive = false;
+
+    const camera = {
+      x: 100,
+      y: 100,
+      angle: 0,
+      speed: 5
+    };
+
+    // Main Menu Functions
+    function startGame() {
+      document.getElementById('main-menu').style.display = 'none';
+      gameCanvas.style.display = 'block';
+      gameCanvas.width = window.innerWidth;
+      gameCanvas.height = window.innerHeight;
+      isGameActive = true;
+      generateWorld();
+    }
+
+    function openSettings() {
+      alert("Settings menu is not yet implemented!");
+    }
+
+    function exitGame() {
+      alert("Exiting the game. See you next time!");
+    }
+
+    // World Generation (Simple Grid Example)
+    const gridSize = 20;
+    const blockSize = 40;
+    const world = [];
+
+    function generateWorld() {
+      for (let x = 0; x < gridSize; x++) {
+        for (let y = 0; y < gridSize; y++) {
+          const color = (x + y) % 2 === 0 ? '#8B4513' : '#A0522D'; // Checkerboard pattern
+          world.push({ x: x * blockSize, y: y * blockSize, color });
+        }
+      }
+      renderWorld();
+    }
+
+    // Render World from Camera Perspective
+    function renderWorld() {
+      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+      world.forEach(block => {
+        const dx = block.x - camera.x;
+        const dy = block.y - camera.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 300) {
+          ctx.fillStyle = block.color;
+          const size = blockSize * (300 / dist); // Simulate perspective
+          ctx.fillRect(camera.x + dx / dist * 300, camera.y + dy / dist * 300, size, size);
+        }
+      });
+    }
+
+    // Player Camera Controls (First-Person Movement and Rotation)
+    window.addEventListener('keydown', (e) => {
+      if (!isGameActive) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+          camera.x += Math.cos(camera.angle) * camera.speed;
+          camera.y += Math.sin(camera.angle) * camera.speed;
+          break;
+        case 'ArrowDown':
+        case 's':
+          camera.x -= Math.cos(camera.angle) * camera.speed;
+          camera.y -= Math.sin(camera.angle) * camera.speed;
+          break;
+        case 'ArrowLeft':
+        case 'a':
+          camera.angle -= 0.1; // Rotate left
+          break;
+        case 'ArrowRight':
+        case 'd':
+          camera.angle += 0.1; // Rotate right
+          break;
+      }
+
+      renderWorld();
+    });
+  </script>
+</body>
+</html>

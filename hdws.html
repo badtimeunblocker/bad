@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS Horror Game</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/PointerLockControls.js"></script>
+    <script>
+        // Variables
+        let scene, camera, renderer, controls;
+        const playerVelocity = new THREE.Vector3();
+        const gravity = -0.05;
+        let isJumping = false;
+        const walkSpeed = 0.05;
+        const runSpeed = 0.1;
+        let moveSpeed = walkSpeed;
+        const monsterSpeed = 0.02;
+
+        // Create scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        scene.fog = new THREE.FogExp2(0x000000, 0.08);
+
+        // Create camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // Create renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create PointerLockControls for first-person perspective
+        controls = new THREE.PointerLockControls(camera, document.body);
+        document.body.addEventListener('click', () => controls.lock());
+
+        // Ground setup
+        const floorGeometry = new THREE.PlaneGeometry(200, 200);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        // Walls (simple maze layout)
+        for (let i = 0; i < 15; i++) {
+            const wallGeometry = new THREE.BoxGeometry(5, 5, 5);
+            const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(Math.random() * 100 - 50, 2.5, Math.random() * 100 - 50);
+            scene.add(wall);
+        }
+
+        // Light source
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(0, 20, 0);
+        scene.add(light);
+
+        // Monster setup
+        const monsterGeometry = new THREE.BoxGeometry(2, 2, 2);
+        const monsterMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 }); // Red for danger
+        const monster = new THREE.Mesh(monsterGeometry, monsterMaterial);
+        monster.position.set(20, 1.5, 20);
+        scene.add(monster);
+
+        // Input tracking
+        const keys = {};
+        document.addEventListener('keydown', (event) => {
+            keys[event.code] = true;
+
+            // Enable running when Shift is held
+            if (event.code === 'ShiftLeft') {
+                moveSpeed = runSpeed;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            keys[event.code] = false;
+
+            // Revert to walking speed when Shift is released
+            if (event.code === 'ShiftLeft') {
+                moveSpeed = walkSpeed;
+            }
+        });
+
+        function movePlayer() {
+            playerVelocity.set(0, playerVelocity.y, 0);
+
+            // Forward and backward movement
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            if (keys['KeyW']) playerVelocity.addScaledVector(forward, moveSpeed);
+            if (keys['KeyS']) playerVelocity.addScaledVector(forward, -moveSpeed);
+
+            // Left and right strafing
+            const right = new THREE.Vector3();
+            right.crossVectors(forward, camera.up).normalize();
+            if (keys['KeyA']) playerVelocity.addScaledVector(right, -moveSpeed);
+            if (keys['KeyD']) playerVelocity.addScaledVector(right, moveSpeed);
+
+            // Jumping logic
+            if (keys['Space'] && !isJumping) {
+                playerVelocity.y = 0.2; // Jump velocity
+                isJumping = true;
+            }
+
+            // Gravity
+        

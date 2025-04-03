@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS Game</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.22.1/full/pyodide.js"></script>
+    <style>
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #333;
+        }
+        body {
+            overflow: hidden;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        async function loadPythonGame() {
+            const pyodide = await loadPyodide();
+            await pyodide.runPythonAsync(`
+import js
+import math
+from time import sleep
+
+# Get canvas from JavaScript
+canvas = js.document.getElementById('gameCanvas')
+canvas.width = js.window.innerWidth
+canvas.height = js.window.innerHeight
+ctx = canvas.getContext('2d')
+
+player = {"x": canvas.width / 2, "y": canvas.height / 2, "speed": 5, "running": False}
+
+# Movement keys
+keys = {}
+
+def keydown(event):
+    keys[event.key] = True
+
+def keyup(event):
+    keys[event.key] = False
+
+# Attach JavaScript event listeners
+js.document.addEventListener('keydown', keydown)
+js.document.addEventListener('keyup', keyup)
+
+# Game loop
+def game_loop():
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+    # Update player position
+    if keys.get('w', False): player["y"] -= player["speed"]
+    if keys.get('s', False): player["y"] += player["speed"]
+    if keys.get('a', False): player["x"] -= player["speed"]
+    if keys.get('d', False): player["x"] += player["speed"]
+
+    # Draw player
+    ctx.fillStyle = "blue"
+    ctx.fillRect(player["x"], player["y"], 50, 50)
+
+    # Loop the game
+    js.window.requestAnimationFrame(game_loop)
+
+game_loop()
+            `);
+        }
+
+        loadPythonGame();
+    </script>
+</body>
+</html>

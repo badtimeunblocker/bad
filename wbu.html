@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Voxel World Game</title>
+  <style>
+    /* CSS Styling */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      overflow: hidden;
+      background-color: #222;
+      color: #fff;
+    }
+
+    #main-menu {
+      text-align: center;
+      margin-top: 20%;
+      display: block;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      background-color: #555;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #888;
+    }
+
+    canvas {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Menu -->
+  <div id="main-menu">
+    <h1>Voxel World</h1>
+    <button onclick="startGame()">Start New World</button>
+    <button onclick="openSettings()">Settings</button>
+    <button onclick="exitGame()">Exit</button>
+  </div>
+
+  <!-- Game Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <script>
+    // JavaScript Code
+
+    // Initialize Variables
+    let gameCanvas = document.getElementById('game-canvas');
+    let ctx = gameCanvas.getContext('2d');
+    let isGameActive = false;
+
+    // Main Menu Functions
+    function startGame() {
+      document.getElementById('main-menu').style.display = 'none';
+      gameCanvas.style.display = 'block';
+      gameCanvas.width = window.innerWidth;
+      gameCanvas.height = window.innerHeight;
+      isGameActive = true;
+      generateWorld();
+    }
+
+    function openSettings() {
+      alert("Settings menu is not yet implemented!");
+    }
+
+    function exitGame() {
+      alert("Exiting the game. See you next time!");
+    }
+
+    // World Generation (Simple Grid Example)
+    function generateWorld() {
+      const gridSize = 20;
+      const blockSize = 40;
+
+      for (let x = 0; x < gridSize; x++) {
+        for (let y = 0; y < gridSize; y++) {
+          let color = (x + y) % 2 === 0 ? '#8B4513' : '#A0522D'; // Checkerboard pattern
+          ctx.fillStyle = color;
+          ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+        }
+      }
+    }
+
+    // Player Movement (Basic First-Person Controls)
+    let player = { x: 100, y: 100, speed: 5 };
+
+    window.addEventListener('keydown', (e) => {
+      if (!isGameActive) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+          player.y -= player.speed;
+          break;
+        case 'ArrowDown':
+        case 's':
+          player.y += player.speed;
+          break;
+        case 'ArrowLeft':
+        case 'a':
+          player.x -= player.speed;
+          break;
+        case 'ArrowRight':
+        case 'd':
+          player.x += player.speed;
+          break;
+      }
+
+      renderPlayer();
+    });
+
+    // Render Player
+    function renderPlayer() {
+      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+      generateWorld(); // Re-render the world
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(player.x, player.y, 40, 40); // Simple block player
+    }
+  </script>
+</body>
+</html>

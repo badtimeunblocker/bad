@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Horror Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+            background: black;
+        }
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            text-align: center;
+        }
+        .menu button {
+            background: gray;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .menu button:hover {
+            background: white;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu" id="mainMenu">
+        <h1>Maze Horror Game</h1>
+        <button onclick="startGame()">Start</button>
+    </div>
+    <div class="menu" id="pauseMenu" style="display: none;">
+        <h1>Paused</h1>
+        <button onclick="resumeGame()">Resume</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let gameActive = false;
+        let gamePaused = false;
+        const player = {
+            x: 50,
+            y: 50,
+            size: 20,
+            speed: 3,
+            jumping: false,
+            velocityY: 0,
+            gravity: 0.5,
+            jumpStrength: -10,
+            ground: canvas.height - 50 // Ground level
+        };
+        const monster = { x: 300, y: 300, size: 30, speed: 2 };
+        const maze = [
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 0, 0, 1, 0, 1],
+            [1, 1, 1, 0, 1, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+        ];
+        const keys = {};
+        const tileSize = 50;
+
+        function startGame() {
+            document.getElementById('mainMenu').style.display = 'none';
+            gameActive = true;
+            gameLoop();
+        }
+
+        function togglePause() {
+            if (!gamePaused) {
+                gamePaused = true;
+                document.getElementById('pauseMenu').style.display = 'block';
+            } else {
+                gamePaused = false;
+                document.getElementById('pauseMenu').style.display = 'none';
+                gameLoop();
+            }
+        }
+
+        function resumeGame() {
+            togglePause();
+        }
+
+        function drawMaze() {
+            for (let row = 0; row < maze.length; row++) {
+                for (let col = 0; col < maze[row].length; col++) {
+                    if (maze[row][col] === 1) {
+                        ctx.fillStyle = 'gray';
+                        ctx.fillRect(col * tileSize, row * tileSize, tileSize, tileSize);
+                    }
+                }
+            }
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x, player.y, player.size, player.size);
+        }
+
+        function drawMonster() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(monster.x, monster.y, monster.size, monster.size);
+        }
+
+        function movePlayer() {
+            if (keys['w'] && !collision(player.x, player.y - player.speed)) player.y -= player.speed;
+            if (keys['s'] && !collision(player.x, player.y + player.speed)) player.y += player.speed;
+            if (keys['a'] && !collision(player.x - player.speed, player.y)) player.x -= player.speed;
+            if (keys['d'] && !collision(player.x + player.speed, player.y)) player.x += player.speed;
+
+            // Jump logic
+            if (keys[' '] && !player.jumping) {
+                player.jumping = true;
+                player.velocityY = player.jumpStrength;
+            }
+            if (player.jumping) {
+                player.y += player.velocityY;
+                player.velocityY += player.gravity;
+
+                // Stop jumping when hitting the ground
+                if (player.y >= player.ground) {
+                    player.jumping = false;
+                    player.velocityY = 0;
+                    player.y = player.ground;
+                }
+            }
+        }
+
+        function moveMonster() {
+            if (monster.x < player.x) monster.x += monster.speed;
+            if (monster.x > player.x) monster.x -= monster.speed;
+            if (monster.y < player.y) monster.y += monster.speed;
+            if (monster.y > player.y) monster.y -= monster.speed;
+        }
+
+        function collision(x, y) {
+            const row = Math.floor(y / tileSize);
+            const col = Math.floor(x / tileSize);
+            return maze[row][col] === 1;
+        }
+
+        function detectCollision() {
+            if (
+                player.x < monster.x + monster.size &&
+                player.x + player.size > monster.x &&
+                player.y < monster.y + monster.size &&
+                player.y + player.size > monster.y
+            ) {
+                alert('Game Over! The monster got you!');
+                gameActive = false;
+                document.getElementById('mainMenu').style.display = 'block';
+            }
+        }
+
+        function gameLoop() {
+            if (!gameActive || gamePaused) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw maze, player, and monster
+            drawMaze();
+            movePlayer();
+            moveMonster();
+            drawPlayer();
+            drawMonster();
+
+            detectCollision();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Event listeners for controls
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'Escape') togglePause();
+        });
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+    </script>
+</body>
+</html>

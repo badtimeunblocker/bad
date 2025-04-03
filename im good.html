@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS Horror Game with Jump</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/PointerLockControls.js"></script>
+    <script>
+        let scene, camera, renderer, controls;
+        const playerVelocity = new THREE.Vector3();
+        const monsterVelocity = new THREE.Vector3();
+        const gravity = -0.05;
+        let isJumping = false; // Tracks jumping state
+        const walkSpeed = 0.05;
+        const runSpeed = 0.1;
+        let moveSpeed = walkSpeed;
+        const monsterSpeed = 0.02;
+
+        // Initialize the scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        scene.fog = new THREE.FogExp2(0x000000, 0.08);
+
+        // Initialize the camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // Initialize the renderer
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Initialize PointerLockControls for first-person control
+        controls = new THREE.PointerLockControls(camera, document.body);
+        document.body.addEventListener('click', () => controls.lock());
+
+        // Add ground
+        const floorGeometry = new THREE.PlaneGeometry(200, 200);
+        const floorMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        // Add walls
+        for (let i = 0; i < 10; i++) {
+            const wallGeometry = new THREE.BoxGeometry(5, 5, 5);
+            const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+            wall.position.set(Math.random() * 50 - 25, 2.5, Math.random() * 50 - 25);
+            scene.add(wall);
+        }
+
+        // Add light
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(0, 20, 0);
+        scene.add(light);
+
+        // Add monster
+        const monsterGeometry = new THREE.BoxGeometry(2, 2, 2
