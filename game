@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pointer Lock First-Person Controls</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            background: black;
+        }
+
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="hud">Click to Lock Pointer. Use WASD to move. Move the mouse to look around.</div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const hud = document.getElementById('hud');
+        const player = { x: 0, z: 0, rotation: { x: 0, y: 0 }, speed: 0.1 };
+
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        // Request pointer lock on click
+        canvas.addEventListener('click', () => {
+            canvas.requestPointerLock();
+        });
+
+        // Listen for pointer lock changes
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement === canvas) {
+                hud.style.display = 'none';
+                console.log("Pointer locked!");
+            } else {
+                hud.style.display = 'block';
+                console.log("Pointer unlocked!");
+            }
+        });
+
+        // Handle mouse movement
+        window.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement === canvas) {
+                player.rotation.y += e.movementX * 0.002;
+                player.rotation.x -= e.movementY * 0.002;
+                player.rotation.x = Math.max(Math.min(player.rotation.x, Math.PI / 2), -Math.PI / 2); // Clamp vertical look
+            }
+        });
+
+        function updateControls() {
+            const forward = { x: Math.sin(player.rotation.y), z: Math.cos(player.rotation.y) };
+            const right = { x: Math.cos(player.rotation.y), z: -Math.sin(player.rotation.y) };
+
+            if (keys['w']) {
+                player.x += forward.x * player.speed;
+                player.z += forward.z * player.speed;
+            }
+            if (keys['s']) {
+                player.x -= forward.x * player.speed;
+                player.z -= forward.z * player.speed;
+            }
+            if (keys['a']) {
+                player.x -= right.x * player.speed;
+                player.z -= right.z * player.speed;
+            }
+            if (keys['d']) {
+                player.x += right.x * player.speed;
+                player.z += right.z * player.speed;
+            }
+        }
+
+        function render() {
+            // Clear and render (replace with actual WebGL rendering later)
+            const gl = canvas.getContext('webgl');
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Simple debug info
+            console.log(`Player Position: (${player.x.toFixed(2)}, ${player.z.toFixed(2)})`);
+        }
+
+        function gameLoop() {
+            updateControls();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
