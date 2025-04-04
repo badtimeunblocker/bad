@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Game - Menu</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: black;
+            color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            color: black;
+            background: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: gray;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Welcome to the Horror Game</h1>
+        <p>Click below to begin your terrifying adventure.</p>
+        <button onclick="window.location.href='map.html'">Start Game</button>
+    </div>
+</body>
+</html>
