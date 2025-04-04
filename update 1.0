@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First-Person Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+        #menu, #pauseMenu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 10;
+        }
+        #menu button, #pauseMenu button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #pauseMenu {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <div>
+            <h1>First-Person Game</h1>
+            <button id="startButton">Start Game</button>
+        </div>
+    </div>
+    <div id="pauseMenu">
+        <div>
+            <h1>Paused</h1>
+            <button id="resumeButton">Resume</button>
+        </div>
+    </div>
+    <script>
+        const menu = document.getElementById('menu');
+        const pauseMenu = document.getElementById('pauseMenu');
+        let isPaused = false;
+
+        const controls = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            jump: false,
+            run: false,
+            crouch: false
+        };
+
+        function handleKeyDown(event) {
+            switch (event.code) {
+                case 'KeyW': controls.forward = true; break;
+                case 'KeyS': controls.backward = true; break;
+                case 'KeyA': controls.left = true; break;
+                case 'KeyD': controls.right = true; break;
+                case 'Space': controls.jump = true; break;
+                case 'ShiftLeft': controls.run = true; break;
+                case 'ControlLeft': controls.crouch = true; break;
+                case 'Escape': togglePause(); break;
+            }
+        }
+
+        function handleKeyUp(event) {
+            switch (event.code) {
+                case 'KeyW': controls.forward = false; break;
+                case 'KeyS': controls.backward = false; break;
+                case 'KeyA': controls.left = false; break;
+                case 'KeyD': controls.right = false; break;
+                case 'Space': controls.jump = false; break;
+                case 'ShiftLeft': controls.run = false; break;
+                case 'ControlLeft': controls.crouch = false; break;
+            }
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            pauseMenu.style.display = isPaused ? 'flex' : 'none';
+        }
+
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            menu.style.display = 'none';
+        });
+
+        document.getElementById('resumeButton').addEventListener('click', () => {
+            togglePause();
+        });
+
+        function gameLoop() {
+            if (!isPaused) {
+                // Game logic goes here, e.g., move player based on controls
+                console.log(controls); // Debug controls
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
