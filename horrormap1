@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horror Game - Map</title>
+    <title>Basic Horror Game</title>
     <style>
         body {
             margin: 0;
@@ -12,6 +12,8 @@
 
         canvas {
             display: block;
+            width: 100%;
+            height: 100vh;
             background: black;
         }
     </style>
@@ -22,11 +24,16 @@
         const canvas = document.getElementById('gameCanvas');
         const gl = canvas.getContext('webgl');
 
-        const player = {
-            x: 0, z: 0, rotationY: 0, speed: 0.1, isRunning: false,
-        };
+        if (!gl) {
+            alert("WebGL not supported on this browser.");
+            throw new Error("WebGL not supported");
+        }
 
+        // Game data
+        const player = { x: 0, z: 0, rotationY: 0, speed: 0.1, isRunning: false };
+        const monster = { x: 5, z: 5, speed: 0.05 };
         const keys = {};
+
         window.addEventListener('keydown', (e) => keys[e.key] = true);
         window.addEventListener('keyup', (e) => keys[e.key] = false);
 
@@ -40,44 +47,63 @@
             }
         });
 
-        function updateControls() {
-            const moveSpeed = keys['Shift'] ? player.speed * 2 : player.speed;
+        // Movement and controls
+        function updatePlayerPosition() {
+            const movementSpeed = keys['Shift'] ? player.speed * 2 : player.speed;
+
+            const forwardX = Math.sin(player.rotationY) * movementSpeed;
+            const forwardZ = Math.cos(player.rotationY) * movementSpeed;
 
             if (keys['w']) {
-                player.x -= Math.sin(player.rotationY) * moveSpeed;
-                player.z -= Math.cos(player.rotationY) * moveSpeed;
+                player.x -= forwardX;
+                player.z -= forwardZ;
             }
             if (keys['s']) {
-                player.x += Math.sin(player.rotationY) * moveSpeed;
-                player.z += Math.cos(player.rotationY) * moveSpeed;
+                player.x += forwardX;
+                player.z += forwardZ;
             }
             if (keys['a']) {
-                player.x -= Math.cos(player.rotationY) * moveSpeed;
-                player.z += Math.sin(player.rotationY) * moveSpeed;
+                player.x -= forwardZ;
+                player.z += forwardX;
             }
             if (keys['d']) {
-                player.x += Math.cos(player.rotationY) * moveSpeed;
-                player.z -= Math.sin(player.rotationY) * moveSpeed;
+                player.x += forwardZ;
+                player.z -= forwardX;
+            }
+        }
+
+        function updateMonster() {
+            // Move monster towards player
+            const dx = player.x - monster.x;
+            const dz = player.z - monster.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+
+            if (distance > 0.5) { // Prevent jittering when too close
+                monster.x += dx / distance * monster.speed;
+                monster.z += dz / distance * monster.speed;
             }
         }
 
         function renderEnvironment() {
-            gl.clearColor(0.1, 0.1, 0.2, 1.0);
+            gl.clearColor(0.1, 0.1, 0.1, 1.0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            // Simulate eerie lighting
-            gl.enable(gl.SCISSOR_TEST);
-            gl.scissor(100, 100, 200, 200);
-            gl.clearColor(1.0, 0.0, 0.0, 1.0); // Red glow
-            gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.disable(gl.SCISSOR_TEST);
+            // Render player position (placeholder logic for now)
+            console.log(`Player: (${player.x.toFixed(1)}, ${player.z.toFixed(1)})`);
+            console.log(`Monster: (${monster.x.toFixed(1)}, ${monster.z.toFixed(1)})`);
         }
 
         function gameLoop() {
-            updateControls();
+            updatePlayerPosition();
+            updateMonster();
             renderEnvironment();
             requestAnimationFrame(gameLoop);
         }
+
+        // Background sound
+        const audio = new Audio('eerie_sound.mp3');
+        audio.loop = true;
+        audio.play();
 
         gameLoop();
     </script>
