@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Proxy with Header Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input {
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        iframe {
+            width: 80%;
+            height: 500px;
+            border: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Proxy with Required Headers</h1>
+    <p>Enter a URL to load it through this simple proxy:</p>
+    <input type="text" id="urlInput" placeholder="Enter URL">
+    <button onclick="loadProxy()">Go</button>
+    <iframe id="proxyFrame"></iframe>
+
+    <script>
+        async function loadProxy() {
+            const url = document.getElementById('urlInput').value;
+            const proxyFrame = document.getElementById('proxyFrame');
+
+            if (url) {
+                try {
+                    const response = await fetch(`https://cors-anywhere.herokuapp.com/${url}`, {
+                        method: "GET",
+                        headers: {
+                            "Origin": "your-domain.com",
+                            "X-Requested-With": "XMLHttpRequest"
+                        }
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const objectURL = URL.createObjectURL(blob);
+                        proxyFrame.src = objectURL;
+                    } else {
+                        alert("Failed to fetch the requested URL.");
+                    }
+                } catch (error) {
+                    alert("An error occurred: " + error.message);
+                }
+            } else {
+                alert("Please enter a valid URL!");
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Proxy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        input {
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        iframe {
+            width: 80%;
+            height: 500px;
+            border: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Web Proxy</h1>
+    <p>Enter a URL to load it through this simple proxy:</p>
+    <input type="text" id="urlInput" placeholder="Enter URL">
+    <button onclick="loadProxy()">Go</button>
+    <iframe id="proxyFrame"></iframe>
+
+    <script>
+        function loadProxy() {
+            const url = document.getElementById('urlInput').value;
+            const proxyFrame = document.getElementById('proxyFrame');
+            
+            if (url) {
+                proxyFrame.src = `https://cors-anywhere.herokuapp.com/${url}`;
+            } else {
+                alert("Please enter a valid URL!");
+            }
+        }
+    </script>
+</body>
+</html>
