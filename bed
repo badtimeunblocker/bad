@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Game</title>
+    <style>
+        canvas {
+            display: block;
+            margin: auto;
+            background: black; /* Dark atmosphere */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script src="game.js"></script>
+</body>
+</html>
+const canvas = document.getElementById('gameCanvas');
+const gl = canvas.getContext('webgl');
+
+// Initialize game state
+let player = { x: 0, y: 0, speed: 0.1 };
+let keys = {};
+
+// Handle key presses
+window.addEventListener('keydown', (e) => keys[e.key] = true);
+window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+// Game loop
+function gameLoop() {
+    if (keys['w']) player.y += player.speed; // Move forward
+    if (keys['s']) player.y -= player.speed; // Move backward
+    if (keys['a']) player.x -= player.speed; // Move left
+    if (keys['d']) player.x += player.speed; // Move right
+    if (keys['Shift']) player.speed = 0.2; // Run
+    else player.speed = 0.1; // Walk
+
+    // Update the game (rendering, AI, etc.)
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+function render() {
+    // Clear the canvas and draw objects
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Game Menu</title>
+    <style>
+        /* General body styling */
+        body {
+            margin: 0;
+            background: black; /* Horror atmosphere */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        /* Menu styling */
+        #menu {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        #menu h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #menu a {
+            display: block;
+            text-decoration: none;
+            color: black;
+            background: white;
+            padding: 10px;
+            margin: 10px auto;
+            width: 80%;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2rem;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        #menu a:hover {
+            background: #333;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Div -->
+    <div id="menu">
+        <h1>Horror Game</h1>
+        <a href="#">Start Game</a>
+        <a href="#">Instructions</a>
+        <a href="#">Exit</a>
+    </div>
+</body>
+</html>
+
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    // Add rendering logic for your scene here
+}
+
+gameLoop();
