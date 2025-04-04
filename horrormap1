@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Game - Map</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            background: black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const gl = canvas.getContext('webgl');
+
+        const player = {
+            x: 0, z: 0, rotationY: 0, speed: 0.1, isRunning: false,
+        };
+
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.key] = true);
+        window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        canvas.addEventListener('click', () => {
+            canvas.requestPointerLock();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement === canvas) {
+                player.rotationY += e.movementX * 0.002;
+            }
+        });
+
+        function updateControls() {
+            const moveSpeed = keys['Shift'] ? player.speed * 2 : player.speed;
+
+            if (keys['w']) {
+                player.x -= Math.sin(player.rotationY) * moveSpeed;
+                player.z -= Math.cos(player.rotationY) * moveSpeed;
+            }
+            if (keys['s']) {
+                player.x += Math.sin(player.rotationY) * moveSpeed;
+                player.z += Math.cos(player.rotationY) * moveSpeed;
+            }
+            if (keys['a']) {
+                player.x -= Math.cos(player.rotationY) * moveSpeed;
+                player.z += Math.sin(player.rotationY) * moveSpeed;
+            }
+            if (keys['d']) {
+                player.x += Math.cos(player.rotationY) * moveSpeed;
+                player.z -= Math.sin(player.rotationY) * moveSpeed;
+            }
+        }
+
+        function renderEnvironment() {
+            gl.clearColor(0.1, 0.1, 0.2, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            // Simulate eerie lighting
+            gl.enable(gl.SCISSOR_TEST);
+            gl.scissor(100, 100, 200, 200);
+            gl.clearColor(1.0, 0.0, 0.0, 1.0); // Red glow
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.disable(gl.SCISSOR_TEST);
+        }
+
+        function gameLoop() {
+            updateControls();
+            renderEnvironment();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
