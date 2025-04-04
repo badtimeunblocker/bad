@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatting Website with Accounts</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+
+    #account-container, #chat-container {
+      display: none;
+    }
+
+    .form-container {
+      text-align: center;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    input {
+      margin: 5px;
+      padding: 10px;
+      width: 80%;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #0078D7;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #005A9E;
+    }
+
+    #chat-box {
+      width: 90%;
+      max-width: 600px;
+      height: 70vh;
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow-y: auto;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #chat-input {
+      width: 90%;
+      max-width: 600px;
+      display: flex;
+      margin-top: 10px;
+    }
+
+    #chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px 0 0 8px;
+      outline: none;
+    }
+
+    #chat-input button {
+      padding: 10px 20px;
+      border: none;
+      background: #0078D7;
+      color: white;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #chat-input button:hover {
+      background: #005A9E;
+    }
+  </style>
+</head>
+<body>
+  <div id="account-container" class="form-container">
+    <h2>Create Account</h2>
+    <input type="text" id="create-username" placeholder="Enter username" required />
+    <input type="password" id="create-password" placeholder="Enter password" required />
+    <button onclick="createAccount()">Create Account</button>
+    <p id="account-message" style="color: red;"></p>
+  </div>
+
+  <div id="login-container" class="form-container">
+    <h2>Login</h2>
+    <input type="text" id="login-username" placeholder="Enter username" required />
+    <input type="password" id="login-password" placeholder="Enter password" required />
+    <button onclick="login()">Login</button>
+    <p id="login-message" style="color: red;"></p>
+  </div>
+
+  <div id="chat-container">
+    <h2>Chat Online</h2>
+    <div id="chat-box"></div>
+    <div id="chat-input">
+      <input type="text" id="message" placeholder="Type your message here..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const accounts = {};
+
+    function createAccount() {
+      const username = document.getElementById('create-username').value.trim();
+      const password = document.getElementById('create-password').value;
+
+      if (username && password) {
+        if (accounts[username]) {
+          document.getElementById('account-message').textContent = "Username already exists.";
+        } else {
+          accounts[username] = password;
+          document.getElementById('account-message').textContent = "Account created successfully! Please log in.";
+          showLogin();
+        }
+      } else {
+        document.getElementById('account-message').textContent = "Please fill out all fields.";
+      }
+    }
+
+    function login() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (accounts[username] && accounts[username] === password) {
+        document.getElementById('login-message').textContent = "";
+        showChat();
+      } else {
+        document.getElementById('login-message').textContent = "Invalid username or password.";
+      }
+    }
+
+    function sendMessage() {
+      const chatBox = document.getElementById('chat-box');
+      const messageInput = document.getElementById('message');
+      const messageText = messageInput.value.trim();
+
+      if (messageText) {
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `You: ${messageText}`;
+        messageElement.style.marginBottom = '10px';
+        chatBox.appendChild(messageElement);
+
+        const botMessage = document.createElement('div');
+        botMessage.textContent = `Bot: You said "${messageText}"!`;
+        botMessage.style.marginBottom = '10px';
+        botMessage.style.color = 'gray';
+        chatBox.appendChild(botMessage);
+
+        messageInput.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('account-container').style.display = "none";
+      document.getElementById('login-container').style.display = "block";
+      document.getElementById('chat-container').style.display = "none";
+    }
+
+    function showChat() {
+      document.getElementById('account-container').style.display = "none";
+      document.getElementById('login-container').style.display = "none";
+      document.getElementById('chat-container').style.display = "block";
+    }
+
+    // Start with account creation
+    document.getElementById('account-container').style.display = "block";
+  </script>
+</body>
+</html>
