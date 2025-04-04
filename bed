@@ -113,3 +113,93 @@ function render() {
 }
 
 gameLoop();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horror Game</title>
+    <style>
+        /* General body styling */
+        body {
+            margin: 0;
+            background: black; /* Horror atmosphere */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+
+        /* Menu styling */
+        #menu {
+            position: absolute;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            transition: opacity 0.5s ease-out; /* Fade effect */
+        }
+
+        #menu h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #menu a {
+            display: block;
+            text-decoration: none;
+            color: black;
+            background: white;
+            padding: 10px;
+            margin: 10px auto;
+            width: 80%;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.2rem;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        #menu a:hover {
+            background: #333;
+            color: white;
+        }
+
+        /* Teleport Area Styling */
+        #teleport-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #222; /* Dark spooky area */
+            display: none; /* Initially hidden */
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        #teleport-area.visible {
+            display: flex; /* Show teleport area */
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Div -->
+    <div id="menu">
+        <h1>Horror Game</h1>
+        <a href="#teleport-area" onclick="activateTeleport()">Start Game</a>
+        <a href="#">Instructions</a>
+        <a href="#">Exit</a>
+    </div>
+
+    <!-- Teleport Area -->
+    <div id="teleport-area" class="hidden">
+        You've been teleported to the game world!
+    </div>
+</body>
+</html>
