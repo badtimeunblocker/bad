@@ -142,5 +142,65 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
+<script>
+    const keys = {}; // Tracks pressed keys
+
+    // Key event listeners for movement and controls
+    document.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        if (e.code === 'ShiftLeft') moveSpeed = runSpeed; // Shift to run
+    });
+
+    document.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+        if (e.code === 'ShiftLeft') moveSpeed = walkSpeed; // Stop running
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !isJumping) {
+            playerVelocity.y = 0.2; // Apply upward velocity for jumping
+            isJumping = true; // Prevent double-jumping
+        }
+    });
+
+    function movePlayer() {
+        const previousPosition = camera.position.clone(); // Save current position
+        playerVelocity.set(0, playerVelocity.y, 0); // Reset horizontal velocity
+
+        // Calculate movement directions
+        const forward = new THREE.Vector3();
+        camera.getWorldDirection(forward);
+
+        const right = new THREE.Vector3();
+        right.crossVectors(forward, camera.up).normalize();
+
+        // Apply movement based on key presses
+        if (keys['KeyW']) playerVelocity.addScaledVector(forward, moveSpeed); // Move forward
+        if (keys['KeyS']) playerVelocity.addScaledVector(forward, -moveSpeed); // Move backward
+        if (keys['KeyA']) playerVelocity.addScaledVector(right, -moveSpeed); // Strafe left
+        if (keys['KeyD']) playerVelocity.addScaledVector(right, moveSpeed); // Strafe right
+
+        // Apply gravity
+        playerVelocity.y += gravity;
+
+        // Check if player is on the ground
+        if (camera.position.y <= 1.5) {
+            playerVelocity.y = 0; // Stop falling
+            isJumping = false; // Reset jumping
+            camera.position.y = 1.5; // Snap to ground level
+        }
+
+        // Update camera position and handle collisions
+        camera.position.add(playerVelocity);
+
+        const playerBoundingBox = new THREE.Box3().setFromCenterAndSize(camera.position, new THREE.Vector3(1, 3, 1));
+        for (const wallBoundingBox of wallBoundingBoxes) {
+            if (playerBoundingBox.intersectsBox(wallBoundingBox)) {
+                camera.position.copy(previousPosition); // Reset position on collision
+                break;
+            }
+        }
+    }
+</script>
 </body>
 </html>
