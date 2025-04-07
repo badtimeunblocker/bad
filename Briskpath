@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastPass</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    input {
+      padding: 10px;
+      width: 500px; /* Increased width */
+    }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+    }
+    iframe {
+      width: 90%; /* Wider iframe */
+      height: 600px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>FastPass</h1>
+  <p>Enter the URL of the website you want to visit:</p>
+  <input type="text" id="url" placeholder="Enter URL here">
+  <button id="go">Go</button>
+
+  <iframe id="proxyFrame" title="FastPass Proxy Frame"></iframe>
+
+  <script>
+    document.getElementById('go').addEventListener('click', () => {
+      const url = document.getElementById('url').value;
+
+      if (url) {
+        // Simulate sending a request to a proxy server
+        document.getElementById('proxyFrame').src = url; // Load URL in iframe
+      } else {
+        alert('Please enter a valid URL!');
+      }
+    });
+
+    document.getElementById('url').addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        const url = document.getElementById('url').value;
+
+        if (url) {
+          // Simulate sending a request to a proxy server
+          document.getElementById('proxyFrame').src = url; // Load URL in iframe
+        } else {
+          alert('Please enter a valid URL!');
+        }
+      }
+    });
+  </script>
+</body>
+</html>
