@@ -20,6 +20,7 @@
         const walkSpeed = 0.05;
         const runSpeed = 0.1;
         let moveSpeed = walkSpeed;
+        let walls = [];
 
         // Setup scene
         scene = new THREE.Scene();
@@ -45,7 +46,7 @@
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Walls (maze structure)
+        // Walls (maze structure with collision)
         for (let i = 0; i < 15; i++) {
             const wallGeometry = new THREE.BoxGeometry(5, 5, 5);
             const wallMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
@@ -56,6 +57,14 @@
                 Math.random() * 100 - 50
             );
             scene.add(wall);
+
+            // Add bounding box for collision detection
+            wall.geometry.computeBoundingBox();
+            wall.updateMatrixWorld();
+            wall.boundingBox = wall.geometry.boundingBox.clone();
+            wall.boundingBox.applyMatrix4(wall.matrixWorld);
+
+            walls.push(wall);
         }
 
         // Add a light source
@@ -74,4 +83,78 @@
             }
         });
 
-        document
+        document.addEventListener('keyup', (e) => {
+            keys[e.code] = false;
+
+            // Revert to walking speed when Shift is released
+            if (e.code === 'ShiftLeft') {
+                moveSpeed = walkSpeed;
+            }
+        });
+
+        // Space bar to handle jumping
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !isJumping) {
+                playerVelocity.y = 0.2; // Set upward velocity for the jump
+                isJumping = true;
+            }
+        });
+
+        function movePlayer() {
+            playerVelocity.set(0, playerVelocity.y, 0);
+
+            // Forward and backward movement
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            if (keys['KeyW']) playerVelocity.addScaledVector(forward, moveSpeed);
+            if (keys['KeyS']) playerVelocity.addScaledVector(forward, -moveSpeed);
+
+            // Left and right strafing
+            const right = new THREE.Vector3();
+            right.crossVectors(forward, camera.up).normalize();
+            if (keys['KeyA']) playerVelocity.addScaledVector(right, -moveSpeed);
+            if (keys['KeyD']) playerVelocity.addScaledVector(right, moveSpeed);
+
+            // Apply gravity
+            playerVelocity.y += gravity;
+
+            // Prevent falling below ground level
+            if (camera.position.y <= 1.5) {
+                playerVelocity.y = 0;
+                isJumping = false; // Reset jump flag when on the ground
+                camera.position.y = 1.5;
+            }
+
+            // Update player position and handle collisions
+            const nextPosition = camera.position.clone().add(playerVelocity);
+            let canMove = true;
+            for (const wall of walls) {
+                wall.boundingBox.setFromObject(wall);
+                if (wall.boundingBox.containsPoint(nextPosition)) {
+                    canMove = false;
+                    break;
+                }
+            }
+
+            if (canMove) {
+                camera.position.add(playerVelocity);
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            movePlayer();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resizing
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
