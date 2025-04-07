@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Movement</title>
+    <style>
+        /* Add any necessary CSS for styling */
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        // JavaScript code starts here
+        const keys = {};
+        const gravity = -0.01;
+        const moveSpeed = 0.05;
+        let playerVelocity = new THREE.Vector3(0, 0, 0);
+        let isJumping = false;
+
+        const camera = new THREE.Camera(); // Example setup, replace with your actual initialization
+
+        window.addEventListener('keydown', (event) => {
+            keys[event.code] = true;
+        });
+
+        window.addEventListener('keyup', (event) => {
+            keys[event.code] = false;
+        });
+
+        function movePlayer() {
+            playerVelocity.set(0, playerVelocity.y, 0);
+
+            // Forward and backward movement
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            if (keys['KeyW']) playerVelocity.addScaledVector(forward, moveSpeed);
+            if (keys['KeyS']) playerVelocity.addScaledVector(forward, -moveSpeed);
+
+            // Left and right strafing
+            const right = new THREE.Vector3();
+            right.crossVectors(forward, camera.up).normalize();
+            if (keys['KeyA']) playerVelocity.addScaledVector(right, -moveSpeed);
+            if (keys['KeyD']) playerVelocity.addScaledVector(right, moveSpeed);
+
+            // Jumping with improved detection
+            if (keys['Space'] && camera.position.y === 1.5 && !isJumping) {
+                playerVelocity.y = 0.3; // Adjusted jump force for smoother jump
+                isJumping = true;
+            }
+
+            // Apply gravity
+            playerVelocity.y += gravity;
+
+            // Ground collision detection
+            if (camera.position.y <= 1.5) {
+                playerVelocity.y = 0;
+                isJumping = false; // Reset jump state
+                camera.position.y = 1.5; // Maintain ground level
+            }
+
+            camera.position.add(playerVelocity);
+        }
+
+        // Animation loop
+        function animate() {
+            movePlayer();
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
