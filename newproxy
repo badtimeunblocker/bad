@@ -38,27 +38,30 @@
         async function loadProxy() {
             const url = document.getElementById('urlInput').value;
             const proxyFrame = document.getElementById('proxyFrame');
-            
+
             if (url) {
                 try {
-                    // Use your proxy URL or `https://cors-anywhere.herokuapp.com/` for requests
-                    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+                    // Proxy service endpoint (replace with your proxy server if needed)
+                    const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
                     
-                    const response = await fetch(proxyUrl, {
+                    // Make the fetch request with headers
+                    const response = await fetch(proxyUrl + url, {
                         method: 'GET',
                         headers: {
+                            'Origin': window.location.origin,
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
-                    
+
                     if (response.ok) {
-                        proxyFrame.src = proxyUrl;
+                        // If successful, set the iframe source to the proxy URL
+                        proxyFrame.src = proxyUrl + url;
                     } else {
-                        alert(`Failed to fetch URL: ${response.status} ${response.statusText}`);
+                        alert(`Error loading the URL: ${response.status} ${response.statusText}`);
                     }
                 } catch (error) {
-                    console.error("Error fetching the URL:", error);
-                    alert("An error occurred while loading the proxy!");
+                    console.error("Error:", error);
+                    alert("An error occurred while loading the URL!");
                 }
             } else {
                 alert("Please enter a valid URL!");
