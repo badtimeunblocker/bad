@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>my actual runnning game</title>
+    <title>FILENOTFOUND</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { margin: 0; }
@@ -145,16 +145,6 @@
                 flashlightSound.setBuffer(buffer);
                 flashlightSound.setVolume(0.32); // Reduced volume by 20% (from 0.4 to 0.32)
             });
-        
-            // Load jumpscare image and sound
-            jumpscareImage = new Image();
-            jumpscareImage.src = 'https://i.postimg.cc/QCRnPvc0/dfwjpnu-80256d7e-9228-4067-9c71-f9d55a99d59b.png';
-            jumpscareSound = new Audio('https://audio.jukehost.co.uk/iY2eOhUHO7lYxkPa1qmo6ndcfQ1279Pi');
-        
-            animate();
-            scheduleJumpscare();
-        }
-        
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
