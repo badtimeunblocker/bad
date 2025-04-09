@@ -1,0 +1,71 @@
+@import url("https://cdn.jsdelivr.net/npm/tailwindcss@3.4.3/base.min.css");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css");
+@import url("/static/css/animations.css");
+
+/* Custom styles */
+:root {
+  --bg-color: #0a0a0a;
+  --text-color: #ffffff;
+  --button-bg: #1a1a1a;
+  --button-hover: #333333;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.main-content {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.start-game-button {
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.start-game-button:hover {
+  background-color: var(--button-hover);
+}
+
+#game-container {
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.overlay-content {
+  text-align: center;
+  color: white;
+  font-size: 24px;
+  line-height: 1.6;
+}

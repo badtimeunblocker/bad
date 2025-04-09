@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <link rel="stylesheet" href="/static/css/animations.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
+    <title>Horror Game</title>
+  </head>
+  <body>
+    <div id="blocker" class="overlay">
+      <div id="instructions" class="overlay-content">
+        <p>Click to play</p>
+        <p>WASD = Move</p>
+        <p>SPACE = Jump</p>
+        <p>SHIFT = Run</p>
+        <p>MOUSE = Look around</p>
+        <p>ESC = Pause</p>
+      </div>
+    </div>
+    <div id="game-container"></div>
+    <script src="/static/js/game.js"></script>
+  </body>
+</html>
