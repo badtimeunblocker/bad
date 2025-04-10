@@ -3,153 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Low-Poly Maze Horror</title>
+  <title>First-Person Maze Horror</title>
   <style>
-    /* General Styling */
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: black;
-      color: white;
       overflow: hidden;
-    }
-
-    #menu {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-    }
-
-    #menu button {
-      background-color: #333;
+      background-color: black;
+      font-family: Arial, sans-serif;
       color: white;
-      border: none;
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      transition: background-color 0.3s;
     }
-
-    #menu button:hover {
-      background-color: #555;
-    }
-
-    #game-container {
-      display: none; /* Hidden by default until game starts */
-      width: 100vw;
-      height: 100vh;
+    #gameCanvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
   </style>
 </head>
 <body>
-  <!-- Menu -->
-  <div id="menu">
-    <h1>Low-Poly Maze Horror</h1>
-    <button id="start-game">Start Game</button>
-    <button id="exit-game">Exit</button>
-  </div>
-
-  <!-- Game -->
-  <div id="game-container">
-    <canvas id="gameCanvas"></canvas>
-  </div>
-
+  <canvas id="gameCanvas"></canvas>
   <script>
-    // DOM Elements
-    const menu = document.getElementById('menu');
-    const gameContainer = document.getElementById('game-container');
-    const startGameButton = document.getElementById('start-game');
-    const exitGameButton = document.getElementById('exit-game');
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-
-    // Game Variables
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let player = { x: 150, y: 150, speed: 2 };
+    // Player variables
+    let player = { x: 2, y: 2, angle: 0, speed: 0.05 };
+
+    // Maze variables (a simple 2D array for the maze structure)
+    const maze = [
+      [1, 1, 1, 1, 1, 1],
+      [1, 0, 0, 0, 0, 1],
+      [1, 0, 1, 0, 1, 1],
+      [1, 0, 0, 0, 0, 1],
+      [1, 1, 1, 1, 1, 1]
+    ];
+
+    // Movement controls
     let keys = {};
-    let monsters = [{ x: 300, y: 300, speed: 1 }]; // Simple monster
 
-    // Show Game
-    startGameButton.addEventListener('click', () => {
-      menu.style.display = 'none';
-      gameContainer.style.display = 'block';
-      canvas.requestPointerLock();
-      gameLoop();
+    document.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
     });
 
-    // Exit Game
-    exitGameButton.addEventListener('click', () => {
-      alert('Thanks for playing!');
+    document.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
     });
 
-    // Set up pointer lock
-    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-
-    canvas.onclick = () => {
-      canvas.requestPointerLock();
-    };
-
-    document.addEventListener('pointerlockchange', lockChangeAlert, false);
-
-    function lockChangeAlert() {
-      if (document.pointerLockElement === canvas) {
-        document.addEventListener('mousemove', mouseMoveHandler, false);
-      } else {
-        document.removeEventListener('mousemove', mouseMoveHandler, false);
+    // Game functions
+    function movePlayer() {
+      if (keys['w']) {
+        const newX = player.x + Math.cos(player.angle) * player.speed;
+        const newY = player.y + Math.sin(player.angle) * player.speed;
+        if (maze[Math.floor(newY)][Math.floor(newX)] === 0) {
+          player.x = newX;
+          player.y = newY;
+        }
+      }
+      if (keys['s']) {
+        const newX = player.x - Math.cos(player.angle) * player.speed;
+        const newY = player.y - Math.sin(player.angle) * player.speed;
+        if (maze[Math.floor(newY)][Math.floor(newX)] === 0) {
+          player.x = newX;
+          player.y = newY;
+        }
+      }
+      if (keys['a']) {
+        player.angle -= 0.05;
+      }
+      if (keys['d']) {
+        player.angle += 0.05;
       }
     }
 
-    // Track mouse movement
-    function mouseMoveHandler(e) {
-      player.x += e.movementX * 0.1;
-      player.y += e.movementY * 0.1;
-    }
+    function renderMaze() {
+      const tileSize = 50;
+      const fov = Math.PI / 4; // Field of View
+      const depth = 5;
 
-    // Handle keyboard inputs
-    document.addEventListener('keydown', (e) => (keys[e.key] = true));
-    document.addEventListener('keyup', (e) => (keys[e.key] = false));
-
-    // Update game state
-    function update() {
-      if (keys['w']) player.y -= player.speed;
-      if (keys['s']) player.y += player.speed;
-      if (keys['a']) player.x -= player.speed;
-      if (keys['d']) player.x += player.speed;
-
-      monsters.forEach((monster) => {
-        if (monster.x < player.x) monster.x += monster.speed;
-        if (monster.x > player.x) monster.x -= monster.speed;
-        if (monster.y < player.y) monster.y += monster.speed;
-        if (monster.y > player.y) monster.y -= monster.speed;
-      });
-    }
-
-    // Draw the game
-    function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw player
-      ctx.fillStyle = 'white';
-      ctx.fillRect(player.x, player.y, 20, 20);
+      for (let x = 0; x < canvas.width; x++) {
+        const angle = player.angle - fov / 2 + (x / canvas.width) * fov;
+        const stepSize = 0.1;
+        let distance = 0;
 
-      // Draw monsters
-      ctx.fillStyle = 'red';
-      monsters.forEach((monster) => {
-        ctx.fillRect(monster.x, monster.y, 20, 20);
-      });
+        for (; distance < depth; distance += stepSize) {
+          const testX = player.x + Math.cos(angle) * distance;
+          const testY = player.y + Math.sin(angle) * distance;
+
+          if (maze[Math.floor(testY)]?.[Math.floor(testX)] === 1) {
+            const wallHeight = canvas.height / (distance * Math.cos(angle - player.angle));
+            ctx.fillStyle = `rgb(${255 - distance * 50}, ${255 - distance * 50}, ${255 - distance * 50})`;
+            ctx.fillRect(x, canvas.height / 2 - wallHeight / 2, 1, wallHeight);
+            break;
+          }
+        }
+      }
     }
 
-    // Main game loop
     function gameLoop() {
-      update();
-      draw();
+      movePlayer();
+      renderMaze();
       requestAnimationFrame(gameLoop);
     }
+
+    gameLoop();
   </script>
 </body>
 </html>
