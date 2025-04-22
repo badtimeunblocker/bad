@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Companion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8ff;
+            color: #333;
+            padding: 20px;
+        }
+        .message {
+            margin: 10px 0;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 60%;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #response {
+            margin-top: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Companion</h1>
+    <p>Hi! I'm your AI friend. What would you like to talk about?</p>
+    
+    <div class="message">
+        <input id="userInput" type="text" placeholder="Type your message here...">
+        <button onclick="respond()">Send</button>
+    </div>
+    
+    <div id="response"></div>
+    
+    <script>
+        function respond() {
+            const userInput = document.getElementById("userInput").value;
+            let reply = "That's interesting! Tell me more!";
+
+            if (userInput.toLowerCase().includes("hello")) {
+                reply = "Hi there! How's your day going?";
+            } else if (userInput.toLowerCase().includes("how are you")) {
+                reply = "I'm just a program, but I'm here to help! How are you?";
+            }
+
+            document.getElementById("response").innerText = reply;
+        }
+    </script>
+</body>
+</html>
