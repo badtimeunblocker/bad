@@ -36,7 +36,7 @@
 </head>
 <body>
     <div>
-        <h1>Welcome to the Horror Game</h1>
+        <h1>Welcome to my begineerHorror Game</h1>
         <p>Click below to begin your terrifying adventure.</p>
         <button onclick="window.location.href='map.html'">Start Game</button>
     </div>
